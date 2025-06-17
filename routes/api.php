@@ -16,12 +16,10 @@ use App\Http\Controllers\CommentaireController;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
-
 Route::apiResource('administrateurs', AdministrateurController::class);
 Route::middleware('auth:admin_api')->group(function () {
     Route::post('profils', [ProfilController::class, 'store']);
 });
-Route::apiResource('commentaires', CommentaireController::class);
+Route::middleware('auth:admin_api')->group(function () {
+    Route::post('commentaires', [CommentaireController::class, 'store']);
+});
