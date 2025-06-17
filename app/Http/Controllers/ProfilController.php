@@ -19,7 +19,9 @@ class ProfilController extends Controller
 	
     public function index()
     {
-        return ProfilResource::collection(Profil::all());
+        return ProfilResource::collection(
+			Profil::where('statut', StatutProfilEnum::Actif->value)->get()
+		);
     }
 
     public function store(Request $request)

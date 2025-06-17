@@ -19,7 +19,6 @@ use App\Http\Controllers\CommentaireController;
 Route::apiResource('administrateurs', AdministrateurController::class);
 Route::middleware('auth:admin_api')->group(function () {
     Route::post('profils', [ProfilController::class, 'store']);
+	Route::post('commentaires', [CommentaireController::class, 'store']);
 });
-Route::middleware('auth:admin_api')->group(function () {
-    Route::post('commentaires', [CommentaireController::class, 'store']);
-});
+Route::get('profils', [ProfilController::class, 'index']);
