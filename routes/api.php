@@ -19,6 +19,9 @@ use App\Http\Controllers\CommentaireController;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+
 Route::apiResource('administrateurs', AdministrateurController::class);
-Route::apiResource('profils', ProfilController::class);
+Route::middleware('auth:admin_api')->group(function () {
+    Route::post('profils', [ProfilController::class, 'store']);
+});
 Route::apiResource('commentaires', CommentaireController::class);

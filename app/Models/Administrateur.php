@@ -2,12 +2,16 @@
 
 namespace App\Models;
 
+use Illuminate\Auth\Authenticatable as AuthenticableTrait;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
-class Administrateur extends Model
+class Administrateur extends Model implements Authenticatable
 {
-    use HasFactory;
+    use HasApiTokens, HasFactory, Notifiable, AuthenticableTrait;
 
     protected $fillable = ['nom', 'prenom'];
 
