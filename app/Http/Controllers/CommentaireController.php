@@ -9,6 +9,11 @@ use Illuminate\Http\Request;
 
 class CommentaireController extends Controller
 {
+	public function __construct()
+	{
+		$this->middleware('auth:admin_api')->only(['store']);
+	}
+	
     public function index()
     {
         return CommentaireResource::collection(Commentaire::all());
@@ -16,10 +21,19 @@ class CommentaireController extends Controller
 
     public function store(Request $request)
     {
+        // Récupérer l'administrateur connecté
+        $admin = auth('admin_api')->user();
+
+        if (!$admin) {
+            return response()->json(['error' => 'Non autorisé.'], 403);
+        }
+
         $validated = $request->validate([
-            'id_admin' => 'required|exists:administrateurs,id',
             'id_profil' => 'required|exists:profils,id',
         ]);
+
+        // Ajout de l'id_admin automatiquement
+        $validated['id_admin'] = $admin->id;
 
         $commentaire = Commentaire::create($validated);
 
