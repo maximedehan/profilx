@@ -14,7 +14,8 @@ class ProfilController extends Controller
 {
 	public function __construct()
 	{
-		$this->middleware('auth:admin_api')->only(['store']);
+		// Protéger store, update et destroy avec l'authentification admin_api
+		$this->middleware('auth:admin_api')->only(['store', 'update', 'destroy']);
 	}
 	
     public function index()
