@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\CommentaireRequest;
 use App\Http\Resources\CommentaireResource;
 use App\Models\Commentaire;
 use Illuminate\Http\Request;
@@ -19,7 +20,7 @@ class CommentaireController extends Controller
         return CommentaireResource::collection(Commentaire::all());
     }
 
-    public function store(Request $request)
+    public function store(CommentaireRequest $request)
     {
         // Récupérer l'administrateur connecté
         $admin = auth('admin_api')->user();
@@ -28,10 +29,7 @@ class CommentaireController extends Controller
             return response()->json(['error' => 'Non autorisé.'], 403);
         }
 
-        $validated = $request->validate([
-            'id_profil' => 'required|exists:profils,id',
-        ]);
-
+		$validated = $request->validated();
         // Ajout de l'id_admin automatiquement
         $validated['id_admin'] = $admin->id;
 
@@ -45,13 +43,9 @@ class CommentaireController extends Controller
         return new CommentaireResource($commentaire);
     }
 
-    public function update(Request $request, Commentaire $commentaire)
+    public function update(CommentaireRequest $request, Commentaire $commentaire)
     {
-        $validated = $request->validate([
-            'id_admin' => 'sometimes|required|exists:administrateurs,id',
-            'id_profil' => 'sometimes|required|exists:profils,id',
-        ]);
-
+		$validated = $request->validated();
         $commentaire->update($validated);
 
         return new CommentaireResource($commentaire);

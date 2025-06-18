@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\StatutProfilEnum;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ProfilRequest;
 use App\Http\Resources\ProfilResource;
 use App\Models\Profil;
 use Illuminate\Http\Request;
@@ -25,7 +26,7 @@ class ProfilController extends Controller
 		);
     }
 
-    public function store(Request $request)
+    public function store(ProfilRequest $request)
     {
 		 // Récupérer l'administrateur connecté
 		$admin = auth('admin_api')->user();
@@ -34,13 +35,7 @@ class ProfilController extends Controller
 			return response()->json(['error' => 'Non autorisé. Aucun administrateur associé.'], 403);
 		}
 
-        $validated = $request->validate([
-            'nom' => 'required|string|max:255',
-            'prenom' => 'required|string|max:255',
-            'image' => 'nullable|string|max:255',
-            'statut' => ['required', Rule::in(StatutProfilEnum::values())],
-        ]);
-
+		$validated = $request->validated();
 		// Ajouter id_admin manuellement
 		$validated['id_admin'] = $admin->id;
 	
@@ -54,16 +49,9 @@ class ProfilController extends Controller
         return new ProfilResource($profil);
     }
 
-    public function update(Request $request, Profil $profil)
+    public function update(ProfilRequest $request, Profil $profil)
     {
-        $validated = $request->validate([
-            'id_admin' => 'sometimes|required|exists:administrateurs,id',
-            'nom' => 'sometimes|required|string|max:255',
-            'prenom' => 'sometimes|required|string|max:255',
-            'image' => 'nullable|string|max:255',
-            'statut' => ['sometimes', Rule::in(StatutProfilEnum::values())],
-        ]);
-
+		$validated = $request->validated();
         $profil->update($validated);
 
         return new ProfilResource($profil);

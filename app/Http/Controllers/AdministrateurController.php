@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\AdministrateurRequest;
 use App\Http\Resources\AdministrateurResource;
 use App\Models\Administrateur;
 use Illuminate\Http\Request;
@@ -18,14 +19,9 @@ class AdministrateurController extends Controller
     }
 
     // Crée un nouvel administrateur
-    public function store(Request $request)
+    public function store(AdministrateurRequest $request)
     {
-        $validated = $request->validate([
-            'nom' => 'required|string|max:255',
-            'prenom' => 'required|string|max:255',
-        ]);
-
-        $admin = Administrateur::create($validated);
+		$admin = Administrateur::create($request->validated());
 
         return new AdministrateurResource($admin);
     }
@@ -37,14 +33,9 @@ class AdministrateurController extends Controller
     }
 
     // Met à jour un administrateur
-    public function update(Request $request, Administrateur $administrateur)
+    public function update(AdministrateurRequest $request, Administrateur $administrateur)
     {
-        $validated = $request->validate([
-            'nom' => 'sometimes|required|string|max:255',
-            'prenom' => 'sometimes|required|string|max:255',
-        ]);
-
-        $administrateur->update($validated);
+		$administrateur->update($request->validated());
 
         return new AdministrateurResource($administrateur);
     }
