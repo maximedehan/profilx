@@ -15,7 +15,7 @@ class ProfilFactory extends Factory
             'prenom' => $this->faker->firstName(),
             'image' => $this->faker->imageUrl(200, 200, 'people'),
             'statut' => $this->faker->randomElement(StatutProfilEnum::values()),
-            'id_admin' => Administrateur::inRandomOrder()->first()->id,
+            'id_admin' => Administrateur::first()?->id ?? Administrateur::factory()->create()->id,
         ];
     }
 }

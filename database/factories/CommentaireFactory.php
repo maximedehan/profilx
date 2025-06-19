@@ -10,9 +10,14 @@ class CommentaireFactory extends Factory
 {
     public function definition(): array
     {
+        $admin = Administrateur::factory()->create();
+        $profil = Profil::factory()->create([
+            'id_admin' => $admin->id,
+        ]);
+
         return [
-            'id_admin' => Administrateur::inRandomOrder()->first()->id,
-            'id_profil' => Profil::inRandomOrder()->first()->id,
+            'id_admin' => $admin->id,
+            'id_profil' => $profil->id,
         ];
     }
 }

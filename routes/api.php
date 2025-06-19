@@ -30,6 +30,12 @@ Route::middleware('auth:admin_api')->group(function () {
 	Route::post('commentaires', [CommentaireController::class, 'store']);
 });
 
-// Accès libre pour voir les profils actifs
+// Accès libre pour voir les profils et les commentaires
 Route::get('profils', [ProfilController::class, 'index']);
 Route::get('profils/{profil}', [ProfilController::class, 'show']);
+Route::get('commentaires', [CommentaireController::class, 'index']);
+Route::get('commentaires/{commentaire}', [CommentaireController::class, 'show']);
+
+// Accès libre pour mettre à jour ou supprimer les commentaires
+Route::put('commentaires/{commentaire}', [CommentaireController::class, 'update']);
+Route::delete('commentaires/{commentaire}', [CommentaireController::class, 'destroy']);
