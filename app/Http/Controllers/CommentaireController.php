@@ -28,6 +28,15 @@ class CommentaireController extends Controller
         if (!$admin) {
             return response()->json(['error' => 'Non autorisé.'], 403);
         }
+		
+		// Empêcher un administrateur de créer plus d'un commentaire
+		$exists = Commentaire::where('id_admin', $admin->id)->exists();
+
+		if ($exists) {
+			return response()->json([
+				'error' => 'Vous avez déjà soumis un commentaire.'
+			], 409); // 409 = Conflict
+		}
 
 		$validated = $request->validated();
         // Ajout de l'id_admin automatiquement

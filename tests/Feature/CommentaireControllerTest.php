@@ -33,6 +33,25 @@ class CommentaireControllerTest extends TestCase
         $response->assertCreated()->assertJsonFragment(['id_profil' => $profil->id]);
         $this->assertDatabaseHas('commentaires', ['id_profil' => $profil->id]);
     }
+	
+	public function test_store_fails_if_duplicate_commentaire()
+	{
+		$admin = Administrateur::factory()->create();
+		$profil = Profil::factory()->create(['id_admin' => $admin->id]);
+
+		// Créer un commentaire pour cet admin
+		Commentaire::factory()->create([
+			'id_admin' => $admin->id,
+			'id_profil' => $profil->id,
+		]);
+
+		// Tenter d'en créer un second
+		$data = ['id_profil' => $profil->id];
+		$response = $this->actingAs($admin, 'admin_api')->postJson('/api/commentaires', $data);
+
+		$response->assertStatus(409);
+		$response->assertJsonFragment(['error' => 'Vous avez déjà soumis un commentaire.']);
+	}
 
     public function test_store_fails_unauthorized()
     {

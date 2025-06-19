@@ -25,7 +25,6 @@ DONC sachant cela, j'ai demandé à chatGPT s'il existait des commandes pour con
 	
 	
 Ce qui n'a pas été fait dans le projet :
-- la relation 1-1 entre les entités "administrateur" et "commentaire"
 - un peu plus de commentaires dans le code
 - passer un coup de "clean code" pour éliminer les espaces, tabulations, codes morts parasites
 - absence d'utilisation d'IDE (j'ai utilisé Notepad++, mon PC ne peut supporter PHP Storm ou Visual Studio Code)
