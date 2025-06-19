@@ -1,0 +1,161 @@
+
+**************************************
+*	TESTER LES REQUETES API PROFILX  *
+**************************************
+
+Environnement technique utilisé dans le projet :
+	Laragon
+	Apache/2.4.62 (Win64) OpenSSL/3.0.15 PHP/8.3.16
+	PHP version: 8.3.16
+	SQL : HeidiSQL 12.8.0.6908 pour MySQL 1.22.3
+	
+
+Phases de développements pour concevoir ce projet :
+
+1/ Etude préalable : dessins sur feuille avec papier/stylo pour détailler les champs, les tables, les relations entre les tables, ...
+2/ Une API, de base, comprend : des migrations, des modèles, des controlleurs 
+DONC sachant cela, j'ai demandé à chatGPT s'il existait des commandes pour concevoir ces 3 ensembles et les compléter/corriger au fil de l'eau avec ses conseils.
+3/ Utilisation de chatGPT pour concevoir les API resources pour formatter proprement les sorties des commandes CURL (n'ayant pas Postman, c'est un passage obligé pour surveiller les données manipulées), les enums et des routes pour le fichier api.php
+4/ Protection par authentification de certaines requêtes comme demandée dans le besoin
+5/ Filtre sur les profils actifs pour la requête GET profil 
+6/ Modification des controlleurs pour les simplifier en utilisant les FormRequest
+7/ Création automatique de données en BDD grâce aux factories et aux seeds 
+8/ Création des Tests unitaires grâce à chatGPT qui m'a également aidé à optimiser les seeds 
+9/ Rédaction de cette documentation sur mon travail	
+	
+	
+Ce qui n'a pas été fait dans le projet :
+- la relation 1-1 entre les entités "administrateur" et "commentaire"
+- un peu plus de commentaires dans le code
+- passer un coup de "clean code" pour éliminer les espaces, tabulations, codes morts parasites
+- absence d'utilisation d'IDE (j'ai utilisé Notepad++, mon PC ne peut supporter PHP Storm ou Visual Studio Code)
+- absence d'utilisation d'Insomnia ou Postman pour tester les requêtes (testées directement via les commandes curl)
+- j'ai complètement oublié le champ string "contenu" pour l'entité ou la table "commentaire" faute de l'avoir reporté sur ma feuille papier (on ne voit du coup que les id profil et id admin pour chaque ligne "commentaire")
+
+
+Rentrons maintenant dans le vif du sujet : comment tester l'API profilx ...
+Les requêtes CURL sont à lancer à la racine du projet.
+
+
+- Créer des administrateurs (sans token) :
+curl -X POST http://127.0.0.1:8000/api/administrateurs -H "Content-Type: application/json" -d "{\"nom\": \"DEHAN\", \"prenom\": \"Maxime\"}"
+curl -X POST http://127.0.0.1:8000/api/administrateurs -H "Content-Type: application/json" -d "{\"nom\": \"INCONNU\", \"prenom\": \"Jean\"}"
+curl -X POST http://127.0.0.1:8000/api/administrateurs -H "Content-Type: application/json" -d "{\"nom\": \"MARTIN\", \"prenom\": \"Louis\"}"
+
+- Créer des profils (sans token) : 
+curl -X POST http://127.0.0.1:8000/api/profils -H "Content-Type: application/json" -d "{\"id_admin\": 1, \"nom\": \"Durand\", \"prenom\": \"Sophie\", \"image\": \"avatar1.png\", \"statut\": \"actif\"}"
+curl -X POST http://127.0.0.1:8000/api/profils -H "Content-Type: application/json" -d "{\"id_admin\": 1, \"nom\": \"Lemoine\", \"prenom\": \"Arthur\", \"image\": \"avatar2.png\", \"statut\": \"en_attente\"}"
+curl -X POST http://127.0.0.1:8000/api/profils -H "Content-Type: application/json" -d "{\"id_admin\": 2, \"nom\": \"Garnier\", \"prenom\": \"Julie\", \"image\": \"avatar3.png\", \"statut\": \"inactif\"}"
+
+- Créer des commentaires (sans token) : 
+curl -X POST http://127.0.0.1:8000/api/commentaires -H "Content-Type: application/json" -d "{\"id_admin\": 1, \"id_profil\": 1}"
+curl -X POST http://127.0.0.1:8000/api/commentaires -H "Content-Type: application/json" -d "{\"id_admin\": 2, \"id_profil\": 1}"
+curl -X POST http://127.0.0.1:8000/api/commentaires -H "Content-Type: application/json" -d "{\"id_admin\": 1, \"id_profil\": 2}"
+curl -X POST http://127.0.0.1:8000/api/commentaires -H "Content-Type: application/json" -d "{\"id_admin\": 2, \"id_profil\": 3}"
+
+
+- Créer des "profils" avec un "admin" identifié dans la table "administrateur" :
+
+Allumer le serveur via la commande : "php artisan serve"
+On génère un token via tinker.
+Ouvrir un terminal puis taper "php artisan tinker" à la racine du projet pour ouvrir le terminal Tinker.
+
+Ecrire les lignes suivantes, une par une : 
+$admin = App\Models\Administrateur::find(1);     (mettre un ID d'admin existant déjà en BDD)    puis ...
+$token = $admin->createToken('admin-token')->plainTextToken;     puis ...
+exit			(puis touche entrée)
+       
+Copier-coller le token généré comme la commande ci-dessous : 
+curl -X POST http://127.0.0.1:8000/api/profils -H "Authorization: Bearer 2|o2tLSiJ7YO5Rn0RHdC6kjLU0BAOYpEbjLZwMFt2ia0625459" -H "Content-Type: application/json" -d "{\"id_admin\": 1, \"nom\": \"Durand\", \"prenom\": \"Sophie\", \"image\": \"avatar1.png\", \"statut\": \"actif\"}"
+
+
+- Créer des "commentaires" avec un "admin" identifié dans la table "administrateur" :
+
+Même mode d'emploi et même token que précédemment mais avec la commande suivante ...
+curl -X POST http://127.0.0.1:8000/api/commentaires -H "Accept: application/json" -H "Authorization: Bearer 2|o2tLSiJ7YO5Rn0RHdC6kjLU0BAOYpEbjLZwMFt2ia0625459" -H "Content-Type: application/json" -d "{\"id_profil\": 3}"
+
+
+- Afficher tous les "profils" au statut "actif"
+curl http://127.0.0.1:8000/api/profils
+
+
+- Modifier entièrement un "profil" avec un "admin" identifié dans la table "administrateur" :
+
+Même mode d'emploi et même token que précédemment mais avec la commande suivante ...
+curl -X PUT http://127.0.0.1:8000/api/profils/1 -H "Accept: application/json" -H "Authorization: Bearer 2|o2tLSiJ7YO5Rn0RHdC6kjLU0BAOYpEbjLZwMFt2ia0625459" -H "Content-Type: application/json" -d "{\"nom\":\"Dupont\",\"prenom\":\"Claire\",\"statut\":\"actif\"}"
+Noter la mise à jour du champ "updated_at" en BDD ou sur la sortie de la console (id profil 1).
+
+
+- Modifier partiellement un "profil" avec un "admin" identifié dans la table "administrateur" :
+
+Même mode d'emploi et même token que précédemment mais avec la commande suivante ...
+curl -X PATCH http://127.0.0.1:8000/api/profils/1 -H "Accept: application/json" -H "Authorization: Bearer 2|o2tLSiJ7YO5Rn0RHdC6kjLU0BAOYpEbjLZwMFt2ia0625459" -H "Content-Type: application/json" -d "{\"statut\":\"inactif\"}"
+Noter la mise à jour du champ "updated_at" en BDD ou sur la sortie de la console (id profil 1).
+
+
+- Supprimer un "profil" avec un "admin" identifié dans la table "administrateur" :
+
+Même mode d'emploi et même token que précédemment mais avec la commande suivante ...
+curl -X DELETE http://127.0.0.1:8000/api/profils/1 -H "Accept: application/json" -H "Authorization: Bearer 2|o2tLSiJ7YO5Rn0RHdC6kjLU0BAOYpEbjLZwMFt2ia0625459"
+
+
+
+****** Commandes Laravel utiles au projet "profilx" ******
+
+0/ Allumer le serveur de dev local
+php artisan serve
+
+
+1/ Les migrations
+php artisan make:migration create_administrateurs_table	// Crée un fichier de migration
+php artisan make:migration create_profils_table
+php artisan make:migration create_commentaires_table
+php artisan migrate // Exécute toutes les migrations
+php artisan migrate:rollback // Annule la dernière migration
+php artisan migrate:refresh // Annule et execute toutes les migrations
+
+
+2/ Les modèles
+php artisan make:model Administrateur	// Crée un modèle
+php artisan make:model Profil
+php artisan make:model Commentaire
+
+
+3/ Les controlleurs 
+php artisan make:controller AdministrateurController	// Crée un contrôleur
+php artisan make:controller ProfilController
+php artisan make:controller CommentaireController
+
+
+4/ Les resources 
+php artisan make:resource AdministrateurResource    // Crée une API Resource
+php artisan make:resource ProfilResource
+php artisan make:resource CommentaireResource
+
+
+5/ Création de FormRequest pour un controller donné (modifié le controlleur associé) :
+php artisan make:request AdministrateurRequest
+php artisan make:request ProfilRequest
+php artisan make:request CommentaireRequest
+
+
+6/ Création de seeds :
+
+// Créer des données de tests (= factories) 
+php artisan make:factory AdministrateurFactory --model=Administrateur
+php artisan make:factory ProfilFactory --model=Profil
+php artisan make:factory CommentaireFactory --model=Commentaire
+
+// Executer la création des données (= seeds)
+php artisan make:seeder AdministrateurSeeder
+php artisan make:seeder ProfilSeeder
+php artisan make:seeder CommentaireSeeder
+php artisan db:seed // remplir la BDD avec les données de test
+
+
+7/ Créer des tests unitaires 
+php artisan make:test AdministrateurControllerTest
+php artisan make:test ProfilControllerTest
+php artisan make:test CommentaireControllerTest
+lancer un test : php artisan test --filter=AdministrateurControllerTest
+lancer tous les tests : php artisan test
